@@ -80,17 +80,21 @@ cargo dylint --all --workspace
 
 ### Building
 
+dylint requires a nightly Rust toolchain. Build the lint library with:
+
 ```bash
 cd pyo3-dylint
-cargo build
+cargo +nightly-2025-09-14 build
 ```
+
+Note: The nightly version should match the one used in CI (see `.github/workflows/ci.yml`).
 
 ### Testing
 
-Run the UI tests:
+Run the UI tests with the nightly toolchain:
 
 ```bash
-cargo test
+cargo +nightly-2025-09-14 test
 ```
 
 ### Adding New Lints

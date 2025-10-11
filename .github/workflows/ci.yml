@@ -133,7 +133,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
         with:
-          # dylint requires nightly and the toolchain specified in rust-toolchain.toml
+          # dylint requires nightly with rustc-dev component
           toolchain: nightly-2025-09-14
           components: llvm-tools,rustc-dev
       - uses: astral-sh/setup-uv@v6

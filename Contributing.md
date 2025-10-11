@@ -121,6 +121,8 @@ PyO3 provides custom lints for PyO3-specific patterns using [dylint](https://git
    nox -s pyo3-dylint
    ```
 
+Note: The nox session automatically uses the correct nightly toolchain via `cargo +nightly-<version>` syntax, so no separate rust-toolchain.toml file is needed in the pyo3-dylint directory.
+
 See [pyo3-dylint/README.md](pyo3-dylint/README.md) for more information about available lints.
 
 #### Tests

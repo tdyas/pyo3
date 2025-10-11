@@ -294,9 +294,14 @@ def pyo3_dylint(session: nox.Session) -> None:
             "cargo-dylint is not installed. Install it with: cargo install cargo-dylint dylint-link"
         )
 
-    # Build the lint library
+    # Determine the nightly toolchain to use
+    # dylint requires a nightly toolchain matching the current stable compiler version
+    nightly_toolchain = "nightly-2025-09-14"
+
+    # Build the lint library using nightly toolchain
     session.run(
         "cargo",
+        f"+{nightly_toolchain}",
         "build",
         "--manifest-path=pyo3-dylint/Cargo.toml",
         external=True,
