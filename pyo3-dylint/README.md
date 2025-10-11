@@ -1,6 +1,6 @@
-# pyo3-clippy-lints
+# pyo3-dylint
 
-Custom [Clippy](https://github.com/rust-lang/rust-clippy) lints for PyO3-specific patterns and best practices.
+Custom lints for PyO3-specific patterns and best practices using [dylint](https://github.com/trailofbits/dylint).
 
 ## Overview
 
@@ -56,7 +56,7 @@ cargo dylint --all --workspace -- --manifest-path path/to/your/Cargo.toml
 Or run on the PyO3 codebase itself:
 
 ```bash
-cargo dylint mutex_lock_py_attached --path pyo3-clippy-lints --workspace
+cargo dylint mutex_lock_py_attached --path pyo3-dylint --workspace
 ```
 
 ### Using in Your Project
@@ -66,7 +66,7 @@ Add the following to your project's `Cargo.toml`:
 ```toml
 [workspace.metadata.dylint]
 libraries = [
-    { git = "https://github.com/PyO3/pyo3", pattern = "pyo3-clippy-lints" }
+    { git = "https://github.com/PyO3/pyo3", pattern = "pyo3-dylint" }
 ]
 ```
 
@@ -81,7 +81,7 @@ cargo dylint --all --workspace
 ### Building
 
 ```bash
-cd pyo3-clippy-lints
+cd pyo3-dylint
 cargo build
 ```
 

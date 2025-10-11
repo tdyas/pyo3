@@ -118,10 +118,10 @@ PyO3 provides custom lints for PyO3-specific patterns using [dylint](https://git
 
 2. Run the lints:
    ```bash
-   nox -s pyo3-clippy-lints
+   nox -s pyo3-dylint
    ```
 
-See [pyo3-clippy-lints/README.md](pyo3-clippy-lints/README.md) for more information about available lints.
+See [pyo3-dylint/README.md](pyo3-dylint/README.md) for more information about available lints.
 
 #### Tests
 `nox -s test` or `cargo test` for Rust tests only, `nox -f pytests/noxfile.py -s test` for Python tests only

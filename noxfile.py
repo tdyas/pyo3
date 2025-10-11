@@ -283,8 +283,8 @@ def clippy_all(session: nox.Session) -> None:
         session.error("one or more jobs failed")
 
 
-@nox.session(name="pyo3-clippy-lints", venv_backend="none")
-def pyo3_clippy_lints(session: nox.Session) -> None:
+@nox.session(name="pyo3-dylint", venv_backend="none")
+def pyo3_dylint(session: nox.Session) -> None:
     """Run PyO3 custom lints using dylint."""
     try:
         # Check if cargo-dylint is installed
@@ -298,7 +298,7 @@ def pyo3_clippy_lints(session: nox.Session) -> None:
     session.run(
         "cargo",
         "build",
-        "--manifest-path=pyo3-clippy-lints/Cargo.toml",
+        "--manifest-path=pyo3-dylint/Cargo.toml",
         external=True,
     )
 
@@ -308,7 +308,7 @@ def pyo3_clippy_lints(session: nox.Session) -> None:
         "dylint",
         "mutex_lock_py_attached",
         "--path",
-        "pyo3-clippy-lints",
+        "pyo3-dylint",
         "--workspace",
         "--",
         "--all-targets",

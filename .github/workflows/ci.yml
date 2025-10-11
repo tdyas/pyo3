@@ -126,7 +126,7 @@ jobs:
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
 
-  pyo3-custom-lints:
+  pyo3-dylint:
     needs: [fmt]
     runs-on: ubuntu-latest
     steps:
@@ -139,7 +139,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install cargo-dylint and dylint-link
         run: cargo install cargo-dylint dylint-link
-      - run: uvx nox -s pyo3-clippy-lints
+      - run: uvx nox -s pyo3-dylint
 
   build-pr:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-build-full') && github.event_name == 'pull_request' }}
