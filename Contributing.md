@@ -108,6 +108,21 @@ You can run these checks yourself with `nox`. Use  `nox -l` to list the full set
 #### Clippy
 `nox -s clippy-all`
 
+#### PyO3 Custom Lints
+PyO3 provides custom lints for PyO3-specific patterns using [dylint](https://github.com/trailofbits/dylint). To run them:
+
+1. Install the required tools:
+   ```bash
+   cargo install cargo-dylint dylint-link
+   ```
+
+2. Run the lints:
+   ```bash
+   nox -s pyo3-clippy-lints
+   ```
+
+See [pyo3-clippy-lints/README.md](pyo3-clippy-lints/README.md) for more information about available lints.
+
 #### Tests
 `nox -s test` or `cargo test` for Rust tests only, `nox -f pytests/noxfile.py -s test` for Python tests only
 

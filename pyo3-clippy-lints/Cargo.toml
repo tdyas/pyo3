@@ -1,0 +1,25 @@
+[package]
+name = "pyo3-clippy-lints"
+version = "0.1.0"
+description = "Custom Clippy lints for PyO3-specific patterns"
+authors = ["PyO3 Project and Contributors <https://github.com/PyO3>"]
+edition = "2021"
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+clippy_utils = { git = "https://github.com/rust-lang/rust-clippy" }
+dylint_linting = "3.2.3"
+
+[dev-dependencies]
+dylint_testing = "3.2.3"
+
+[package.metadata.rust-analyzer]
+# This package uses rustc crates, which rust-analyzer does not support.
+rustc_private = true
+
+[lints]
+workspace = true

@@ -188,6 +188,9 @@ members = [
     "pytests",
     "examples",
 ]
+exclude = [
+    "pyo3-clippy-lints",
+]
 package.rust-version = "1.74"
 
 [package.metadata.docs.rs]

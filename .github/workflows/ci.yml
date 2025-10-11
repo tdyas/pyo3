@@ -126,6 +126,21 @@ jobs:
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
 
+  pyo3-custom-lints:
+    needs: [fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          # dylint requires nightly and the toolchain specified in rust-toolchain.toml
+          toolchain: nightly-2025-09-14
+          components: llvm-tools,rustc-dev
+      - uses: astral-sh/setup-uv@v6
+      - name: Install cargo-dylint and dylint-link
+        run: cargo install cargo-dylint dylint-link
+      - run: uvx nox -s pyo3-clippy-lints
+
   build-pr:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-build-full') && github.event_name == 'pull_request' }}
     name: python${{ matrix.python-version }}-${{ matrix.platform.python-architecture }} ${{ matrix.platform.os }} rust-${{ matrix.rust }}

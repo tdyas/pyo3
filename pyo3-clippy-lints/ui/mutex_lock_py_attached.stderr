@@ -1,0 +1,19 @@
+error: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
+  --> ui/mutex_lock_py_attached.rs:6:18
+   |
+6  |     let _guard = mutex.lock().unwrap();
+   |                  ^^^^^^^^^^^^
+   |
+   = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
+   = note: `-D mutex-lock-py-attached` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(mutex_lock_py_attached)]`
+
+error: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
+  --> ui/mutex_lock_py_attached.rs:15:18
+   |
+15 |     let _guard = s.data.lock().unwrap();
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
+
+error: could not compile `ui` (bin "mutex_lock_py_attached") due to 2 previous errors
