@@ -295,8 +295,8 @@ def pyo3_dylint(session: nox.Session) -> None:
         )
 
     # Determine the nightly toolchain to use
-    # dylint requires a nightly toolchain matching the current stable compiler version
-    nightly_toolchain = "nightly-2025-09-14"
+    # dylint requires a nightly toolchain; use "nightly" for latest
+    nightly_toolchain = "nightly-2025-10-10"
 
     # Build the lint library using nightly toolchain
     session.run(
