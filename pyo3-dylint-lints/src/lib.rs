@@ -14,12 +14,14 @@ dylint_linting::dylint_library!();
 
 #[doc(hidden)]
 #[unsafe(no_mangle)]
-pub fn register_lints(_session: &rustc_session::Session, lint_store: &mut rustc_lint::LintStore) {
+pub fn register_lints(session: &rustc_session::Session, lint_store: &mut rustc_lint::LintStore) {
+    dylint_linting::init_config(session);
     lint_store.register_lints(&[mutex_lock_py_attached::MUTEX_LOCK_PY_ATTACHED]);
     lint_store.register_late_pass(|_| Box::new(mutex_lock_py_attached::MutexLockPyAttached));
 }
 
 #[test]
-fn ui() {
-    dylint_testing::ui_test(env!("CARGO_PKG_NAME"), "ui");
+fn ui_tests() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("ui/mutex_lock_py_attached.rs");
 }

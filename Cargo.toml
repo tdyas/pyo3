@@ -189,7 +189,7 @@ members = [
     "examples",
 ]
 exclude = [
-    "pyo3-dylint",
+    "pyo3-dylint-lints",
 ]
 package.rust-version = "1.74"
 
