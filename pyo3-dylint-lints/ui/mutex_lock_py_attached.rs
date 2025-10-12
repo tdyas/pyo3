@@ -5,6 +5,35 @@ use pyo3::sync::MutexExt;
 use std::sync::Mutex as StdMutex;
 use parking_lot::Mutex as PLMutex;
 
+// Should trigger - PyO3 function without explicit Python token argument
+#[pyo3::pyfunction]
+fn bad_pyfunction() -> pyo3::PyResult<()> {
+    let mutex = StdMutex::new(0);
+    let _guard = mutex.lock().unwrap();
+    Ok(())
+}
+
+// Should trigger - PyO3 class method without explicit Python token argument
+#[pyo3::pyclass]
+struct PyClassWithMutex {
+    data: StdMutex<i32>,
+}
+
+#[pyo3::pymethods]
+impl PyClassWithMutex {
+    fn bad_method(&self) -> pyo3::PyResult<i32> {
+        let _guard = self.data.lock().unwrap();
+        Ok(7)
+    }
+
+    fn ok_try_lock(&self) -> pyo3::PyResult<()> {
+        if let Ok(_guard) = self.data.try_lock() {
+            // work with guard
+        }
+        Ok(())
+    }
+}
+
 // Should trigger the lint
 fn bad_example_basic_std(_py: Python<'_>, mutex: &StdMutex<i32>) {
     let _guard = mutex.lock().unwrap();

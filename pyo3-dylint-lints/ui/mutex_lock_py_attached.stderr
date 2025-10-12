@@ -1,5 +1,5 @@
 warning: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
-  --> $DIR/mutex_lock_py_attached.rs:10:18
+  --> $DIR/mutex_lock_py_attached.rs:11:18
    |
 LL |     let _guard = mutex.lock().unwrap();
    |                  ^^^^^^^^^^^^
@@ -8,7 +8,23 @@ LL |     let _guard = mutex.lock().unwrap();
    = note: `#[warn(mutex_lock_py_attached)]` on by default
 
 warning: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
-  --> $DIR/mutex_lock_py_attached.rs:14:18
+  --> $DIR/mutex_lock_py_attached.rs:24:22
+   |
+LL |         let _guard = self.data.lock().unwrap();
+   |                      ^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
+
+warning: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
+  --> $DIR/mutex_lock_py_attached.rs:38:18
+   |
+LL |     let _guard = mutex.lock().unwrap();
+   |                  ^^^^^^^^^^^^
+   |
+   = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
+
+warning: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
+  --> $DIR/mutex_lock_py_attached.rs:42:18
    |
 LL |     let _guard = mutex.lock();
    |                  ^^^^^^^^^^^^
@@ -16,12 +32,11 @@ LL |     let _guard = mutex.lock();
    = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
 
 warning: calling `.lock()` on a Mutex when a Python token is available may cause deadlocks
-  --> $DIR/mutex_lock_py_attached.rs:23:18
+  --> $DIR/mutex_lock_py_attached.rs:51:18
    |
 LL |     let _guard = s.data.lock().unwrap();
    |                  ^^^^^^^^^^^^^
    |
    = help: consider using `.lock_py_attached(py)` instead, which safely detaches from the Python runtime before locking
 
-warning: 3 warnings emitted
-
+warning: 5 warnings emitted
