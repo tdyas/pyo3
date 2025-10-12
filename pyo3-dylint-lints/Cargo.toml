@@ -14,8 +14,8 @@ clippy_utils = { git = "https://github.com/rust-lang/rust-clippy", rev = "20ce69
 dylint_linting = "5.0.0"
 
 [dev-dependencies]
-trybuild = ">=1.0.70"
-pyo3 = { path = ".." }
+parking_lot = "0.12"
+pyo3 = { path = "..", features = ["lock_api"] }
 dylint_testing = "5.0.0"
 
 [[example]]
