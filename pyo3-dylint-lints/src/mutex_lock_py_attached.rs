@@ -3,10 +3,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
+use rustc_session::{declare_lint, declare_lint_pass};
 
 declare_lint! {
     /// ### What it does
@@ -89,26 +86,18 @@ impl<'tcx> LateLintPass<'tcx> for MutexLockPyAttached {
 
 /// Check if the type is std::sync::Mutex or parking_lot::Mutex
 fn is_mutex_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
+    const MUTEX_TYPES: &[&[&str]] = &[
+        &["std", "sync", "poison", "mutex", "Mutex"],
+        &["parking_lot", "Mutex"],
+        &["lock_api", "mutex", "Mutex"],
+    ];
+
     match ty.kind() {
         ty::Adt(adt, _) => {
             let def_id = adt.did();
-
-            // Check for std::sync::Mutex
-            if crate::utils::match_def_path(cx, def_id, &["std", "sync", "mutex", "Mutex"]) {
-                return true;
-            }
-
-            // Check for parking_lot::Mutex
-            if crate::utils::match_def_path(cx, def_id, &["parking_lot", "Mutex"]) {
-                return true;
-            }
-
-            // Check for lock_api::Mutex
-            if crate::utils::match_def_path(cx, def_id, &["lock_api", "mutex", "Mutex"]) {
-                return true;
-            }
-
-            false
+            MUTEX_TYPES
+                .iter()
+                .any(|path| crate::utils::match_def_path(cx, def_id, *path))
         }
         _ => false,
     }
@@ -118,18 +107,13 @@ fn is_mutex_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
 fn has_python_token_in_scope(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     // Get the body owner (the function containing this expression).
     let owner_id = cx.tcx.hir_enclosing_body_owner(expr.hir_id);
+    let body = cx.tcx.hir_body_owned_by(owner_id);
 
-    // Get the function signature
-    if let Some(fn_decl) = cx
-        .tcx
-        .hir_fn_decl_by_hir_id(cx.tcx.local_def_id_to_hir_id(owner_id))
-    {
-        // Check all function parameters for Python<'_>.
-        for param in fn_decl.inputs {
-            let param_ty = cx.typeck_results().node_type(param.hir_id);
-            if is_python_token_type(cx, param_ty) {
-                return true;
-            }
+    // Check all function parameters for Python<'_>.
+    for param in body.params {
+        let param_ty = cx.typeck_results().node_type(param.pat.hir_id);
+        if is_python_token_type(cx, param_ty) {
+            return true;
         }
     }
 

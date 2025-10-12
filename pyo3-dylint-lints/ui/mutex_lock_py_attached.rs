@@ -1,5 +1,7 @@
-use pyo3::sync::MutexExt;
+#![allow(unused)]
+
 use pyo3::marker::Python;
+use pyo3::sync::MutexExt;
 use std::sync::Mutex;
 
 // Should trigger the lint

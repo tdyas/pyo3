@@ -21,7 +21,6 @@ pub fn register_lints(session: &rustc_session::Session, lint_store: &mut rustc_l
 }
 
 #[test]
-fn ui_tests() {
-    let t = trybuild::TestCases::new();
-    t.compile_fail("ui/mutex_lock_py_attached.rs");
+fn ui_examples() {
+    dylint_testing::ui_test_examples(env!("CARGO_PKG_NAME"));
 }
