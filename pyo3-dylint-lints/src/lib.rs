@@ -3,6 +3,7 @@
 
 extern crate rustc_hir;
 extern crate rustc_lint;
+extern crate rustc_lint_defs;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
@@ -17,7 +18,7 @@ dylint_linting::dylint_library!();
 pub fn register_lints(session: &rustc_session::Session, lint_store: &mut rustc_lint::LintStore) {
     dylint_linting::init_config(session);
     lint_store.register_lints(&[mutex_lock_py_attached::MUTEX_LOCK_PY_ATTACHED]);
-    lint_store.register_late_pass(|_| Box::new(mutex_lock_py_attached::MutexLockPyAttached));
+    lint_store.register_late_pass(|_| Box::new(mutex_lock_py_attached::MutexLockPyAttached::default()));
 }
 
 #[test]

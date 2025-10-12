@@ -1,9 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use rustc_hir::{Expr, ExprKind};
+use std::collections::HashSet;
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def_id::LocalDefId;
+use rustc_hir::intravisit::{self, Visitor};
+use rustc_hir::{BodyOwnerKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint_defs::{LintPass, LintVec};
 use rustc_middle::ty::{self, Ty};
-
-use rustc_session::{declare_lint, declare_lint_pass};
+use rustc_session::declare_lint;
 
 declare_lint! {
     /// ### What it does
@@ -45,10 +49,62 @@ declare_lint! {
     "calling `.lock()` on a Mutex when Python token is available may cause deadlocks"
 }
 
-declare_lint_pass!(MutexLockPyAttached => [MUTEX_LOCK_PY_ATTACHED]);
+pub struct MutexLockPyAttached {
+    implied_attached: HashSet<LocalDefId>,
+    wrappers_scanned: bool,
+}
+
+impl Default for MutexLockPyAttached {
+    fn default() -> Self {
+        Self {
+            implied_attached: HashSet::new(),
+            wrappers_scanned: false,
+        }
+    }
+}
+
+impl LintPass for MutexLockPyAttached {
+    fn name(&self) -> &'static str {
+        "MutexLockPyAttached"
+    }
+
+    fn get_lints(&self) -> LintVec {
+        vec![&MUTEX_LOCK_PY_ATTACHED]
+    }
+}
+
+impl MutexLockPyAttached {
+    fn ensure_wrappers_scanned<'tcx>(&mut self, cx: &LateContext<'tcx>) {
+        if self.wrappers_scanned {
+            return;
+        }
+
+        self.wrappers_scanned = true;
+
+        for def_id in cx.tcx.hir_body_owners() {
+            if !matches!(cx.tcx.hir_body_owner_kind(def_id), BodyOwnerKind::Fn) {
+                continue;
+            }
+
+            if !is_pyo3_wrapper(cx, def_id) {
+                continue;
+            }
+
+            let body = cx.tcx.hir_body_owned_by(def_id);
+            let mut collector = WrapperCollector {
+                cx,
+                exclude: def_id,
+                attached: &mut self.implied_attached,
+            };
+            collector.visit_body(body);
+        }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for MutexLockPyAttached {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        self.ensure_wrappers_scanned(cx);
+
         // Check if this is a method call to `lock()`
         if let ExprKind::MethodCall(path, receiver, args, _) = expr.kind {
             if path.ident.name.as_str() != "lock" {
@@ -68,7 +124,7 @@ impl<'tcx> LateLintPass<'tcx> for MutexLockPyAttached {
             }
 
             // Check if there's a Python<'_> token available in scope
-            if !has_python_token_in_scope(cx, expr) {
+            if !has_python_token_in_scope(cx, expr, &self.implied_attached) {
                 return;
             }
 
@@ -82,6 +138,52 @@ impl<'tcx> LateLintPass<'tcx> for MutexLockPyAttached {
             );
         }
     }
+}
+
+struct WrapperCollector<'a, 'tcx> {
+    cx: &'a LateContext<'tcx>,
+    exclude: LocalDefId,
+    attached: &'a mut HashSet<LocalDefId>,
+}
+
+impl<'tcx> Visitor<'tcx> for WrapperCollector<'_, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+        if let ExprKind::Path(ref qpath) = expr.kind {
+            let res = self.cx.qpath_res(qpath, expr.hir_id);
+            if let Res::Def(def_kind, def_id) = res {
+                if matches!(def_kind, DefKind::Fn | DefKind::AssocFn | DefKind::Ctor(..)) {
+                    if let Some(local) = def_id.as_local() {
+                        if local != self.exclude {
+                            self.attached.insert(local);
+                        }
+                    }
+                }
+            }
+        }
+
+        intravisit::walk_expr(self, expr);
+    }
+}
+
+fn is_pyo3_wrapper(cx: &LateContext<'_>, def_id: LocalDefId) -> bool {
+    let Some(name) = cx.tcx.opt_item_name(def_id.to_def_id()) else {
+        return false;
+    };
+    let name_str = name.as_str();
+    if !name_str.starts_with("__pyfunction_")
+        && !name_str.starts_with("__pymethod_")
+        && !name_str.starts_with("__pymodule_")
+    {
+        return false;
+    }
+
+    let sig = cx.tcx.fn_sig(def_id.to_def_id()).skip_binder();
+    let first_input = match sig.inputs().skip_binder().first() {
+        Some(ty) => *ty,
+        None => return false,
+    };
+
+    is_python_token_type(cx, first_input)
 }
 
 /// Check if the type is std::sync::Mutex or parking_lot::Mutex
@@ -104,9 +206,18 @@ fn is_mutex_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
 }
 
 /// Check if there's a Python<'_> token in the current function scope
-fn has_python_token_in_scope(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+fn has_python_token_in_scope(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    implied_attached: &HashSet<LocalDefId>,
+) -> bool {
     // Get the body owner (the function containing this expression).
     let owner_id = cx.tcx.hir_enclosing_body_owner(expr.hir_id);
+
+    if implied_attached.contains(&owner_id) {
+        return true;
+    }
+
     let body = cx.tcx.hir_body_owned_by(owner_id);
 
     // Check all function parameters for Python<'_>.
